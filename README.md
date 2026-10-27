@@ -10,13 +10,16 @@ It is inspired by the `hon-washer-card` that ships with [galvani/hon](https://gi
 - A Wash, Rinse, Spin, Dry progress bar driven by the program phase sensor
 - The running program, temperature and spin speed
 - When idle: an optional program dropdown with a start button, and a set of favourite programs you define
+- While running: Pause/Resume and Stop buttons, when [hon-control](https://github.com/darkearth56/hon-control) is installed
 - Notices when remote control is off on the machine, when it is paused, or when it stops reporting
 
-Every start asks for confirmation first.
+Every start and stop asks for confirmation first.
 
-### Not included
+### Pause, resume and stop
 
-gvigroux/hon has no working pause or stop service for washers, so the card has no pause or stop buttons. Use the hOn app for those.
+gvigroux/hon has no working pause or stop service for washers. Install the companion integration [hon-control](https://github.com/darkearth56/hon-control), which adds them, and the card shows the buttons automatically. Without it the card hides them and points you to the hOn app.
+
+The machine takes about a minute to report a change, so the button shows "Pausing…", "Resuming…" or "Stopping…" for a minute after you press it.
 
 ## Install
 
@@ -84,6 +87,7 @@ favourites:
 | --- | --- | --- |
 | `layout` | `full` | `full` or `compact` |
 | `name` | `Wash Dryer` | Card title |
+| `device_id` | found from the `phase` sensor | hOn device that pause, resume and stop are sent to |
 | `favourites` | `[]` | Buttons that call a service. Each has `name`, `action` (`domain.service`), and optional `icon`, `data`, `target`, `confirm` |
 | `compact_favourites` | `3` | How many favourites the compact layout shows when idle |
 | `code_names` | see below | Map of program code to a friendly name, for codes the program name sensor can't resolve |
@@ -100,18 +104,23 @@ favourites:
 
 The entity defaults match a device named "Wash Dryer" in gvigroux/hon. If yours has a different name, override the entity options.
 
-Default `code_names`: `4` Synthetic and Coloured, `12` All in One 59, `17` Low Dry. Program codes can differ between models, so check yours.
+Default `code_names`: `4` Synthetic and Coloured, `5` Rinse, `12` All in One 59, `17` Low Dry. Program codes can differ between models, so check yours.
 
 ### How states are read
 
 | Mode sensor | Meaning |
 | --- | --- |
 | `7` | Idle |
-| `1` | Program loaded, starting |
+| `1` | Program loaded; idle while the phase is Ready |
 | `2` | Running |
 | `3` | Paused |
 
 Phase codes follow the gvigroux translations: 1–2, 14–16, 25 and 27 washing; 4–6 and 17–18 rinse; 3 and 11 spin; 7–8 drying; 9 steam; 12–13 weighing; 19 scheduled; 20 tumbling; 24 refresh; 26 heating; 0 and 10 ready.
+
+## Changelog
+
+- 1.1.0: Pause, resume and stop buttons via hon-control. Mode 1 with a Ready phase now shows as idle, not starting. Program code 5 named Rinse.
+- 1.0.0: First release.
 
 ## Licence
 

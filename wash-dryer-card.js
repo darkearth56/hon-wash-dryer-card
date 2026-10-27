@@ -1,8 +1,11 @@
 // wash-dryer-card — porthole-style card for a Hoover/Haier washer-dryer on the gvigroux/hon integration.
-// Layouts: full | compact. Start runs the catalog selection or a configured favourite; gvigroux has no pause/stop.
+// Layouts: full | compact. Start runs the catalog selection or a configured favourite.
+// Pause, resume and stop appear when the hon_control integration (darkearth56/hon-control) is installed.
+const VERSION = "1.1.0";
 const DEFAULTS = {
   layout: "full",
   name: "Wash Dryer",
+  device_id: "",
   phase: "sensor.wash_dryer_program_phase",
   remaining: "sensor.wash_dryer_remaining_time",
   mode: "sensor.wash_dryer_mode",
@@ -13,7 +16,7 @@ const DEFAULTS = {
   remote: "binary_sensor.wash_dryer_remote_control",
   catalog: "input_select.wash_dryer_program_catalog",
   catalog_go: "input_button.wash_dryer_catalog_start",
-  code_names: { 4: "Synthetic and Coloured", 12: "All in One 59", 17: "Low Dry" },
+  code_names: { 4: "Synthetic and Coloured", 5: "Rinse", 12: "All in One 59", 17: "Low Dry" },
   favourites: [],
   compact_favourites: 3,
 };
@@ -42,7 +45,10 @@ class WashDryerCard extends HTMLElement {
     this._hass = hass;
     const c = this._config;
     const ids = [c.phase, c.remaining, c.mode, c.program_name, c.program_code, c.temperature, c.spin, c.remote, c.catalog];
-    const key = ids.map((id) => hass.states[id]?.state).join("|") + "|" + (hass.states[c.catalog]?.attributes.options || []).length;
+    const key =
+      ids.map((id) => hass.states[id]?.state).join("|") +
+      "|" + (hass.states[c.catalog]?.attributes.options || []).length +
+      "|" + Boolean(hass.services?.hon_control) + "|" + (this._pending || "");
     if (key === this._key) return;
     this._key = key;
     this._render();
@@ -66,7 +72,8 @@ class WashDryerCard extends HTMLElement {
     const phase = Number(phaseRaw);
     const mode = Number(this._s(c.mode));
     const offline = BAD.includes(phaseRaw);
-    const active = !offline && ((phase !== 0 && phase !== 10) || [1, 2, 3].includes(mode));
+    // Mode 1 with a Ready phase is a program loaded but not started, which is idle.
+    const active = !offline && ((phase !== 0 && phase !== 10) || [2, 3].includes(mode));
     const paused = active && mode === 3;
     const scheduled = active && phase === 19;
     const remaining = Number(this._s(c.remaining));
@@ -86,7 +93,46 @@ class WashDryerCard extends HTMLElement {
       remoteOn: this._s(c.remote) === "on",
       temp: this._s(c.temperature),
       spin: this._s(c.spin),
+      controls: Boolean(this._hass.services?.hon_control) && Boolean(this._deviceId()),
     };
+  }
+
+  _deviceId() {
+    const c = this._config;
+    return c.device_id || this._hass?.entities?.[c.phase]?.device_id || "";
+  }
+
+  _control(action) {
+    const services = { pause: "pause_program", resume: "resume_program", stop: "stop_program" };
+    if (action === "stop" && !window.confirm("Stop the current program?")) return;
+    this._pending = action;
+    this._render();
+    this._hass
+      .callService("hon_control", services[action], {}, { device_id: this._deviceId() })
+      .catch((err) => window.alert(`Couldn't ${action}: ${err?.message || err}`))
+      .finally(() => {
+        // The machine takes about a minute to report the change; keep the button busy until then.
+        setTimeout(() => {
+          this._pending = undefined;
+          this._key = undefined;
+          if (this._hass) this.hass = this._hass;
+        }, 60000);
+      });
+  }
+
+  _controlButtons(s, compact) {
+    if (!s.active || !s.controls) return "";
+    const busy = Boolean(this._pending);
+    const dis = busy || !s.remoteOn ? "disabled" : "";
+    const toggle = s.paused ? "resume" : "pause";
+    const label = busy ? `${this._pending === "stop" ? "Stopping" : this._pending === "pause" ? "Pausing" : "Resuming"}…` : s.paused ? "Resume" : "Pause";
+    if (compact) {
+      return `<button class="round" data-control="${toggle}" ${dis} aria-label="${label}" title="${label}">${icon(s.paused ? "mdi:play" : "mdi:pause", 22)}</button>`;
+    }
+    return `<div class="actions">
+      <button class="primary" data-control="${toggle}" ${dis}>${icon(s.paused ? "mdi:play" : "mdi:pause", 20)}${label}</button>
+      <button class="secondary" data-control="stop" ${dis}>${icon("mdi:stop", 20)}Stop</button>
+    </div>`;
   }
 
   _porthole(s, small) {
@@ -124,8 +170,10 @@ class WashDryerCard extends HTMLElement {
   _notice(s) {
     if (s.offline) return `<p class="notice">The washer isn't reporting right now. Check the hOn integration.</p>`;
     if (!s.remoteOn) return `<p class="notice">Remote control is off on the machine. Press its remote button to start programs from here.</p>`;
+    if (this._pending) return `<p class="hint">Sent. The machine takes about a minute to report the change.</p>`;
+    if (s.controls) return s.paused ? `<p class="notice">Paused.</p>` : "";
     if (s.paused) return `<p class="notice">Paused on the machine. Resume or stop it in the hOn app.</p>`;
-    if (s.active) return `<p class="hint">Pause and stop aren't available from Home Assistant. Use the hOn app.</p>`;
+    if (s.active) return `<p class="hint">Install hon_control to pause and stop from here, or use the hOn app.</p>`;
     return "";
   }
 
@@ -144,7 +192,8 @@ class WashDryerCard extends HTMLElement {
       ${s.hasTime ? `<p class="ends">Ends at <strong>${esc(s.ends)}</strong></p>` : ""}
       ${this._stagesBar(s)}
       ${s.active
-        ? `<div class="running-info"><span class="prog">${esc(s.programLabel || "Program running")}</span><span class="meta">${[!BAD.includes(s.temp) ? `${esc(s.temp)}°C` : "", !BAD.includes(s.spin) ? `${esc(s.spin)} rpm` : ""].filter(Boolean).join(" · ")}</span></div>`
+        ? `<div class="running-info"><span class="prog">${esc(s.programLabel || "Program running")}</span><span class="meta">${[!BAD.includes(s.temp) ? `${esc(s.temp)}°C` : "", !BAD.includes(s.spin) ? `${esc(s.spin)} rpm` : ""].filter(Boolean).join(" · ")}</span></div>
+           ${this._controlButtons(s, false)}`
         : `${cat ? `<label class="program"><select data-catalog ${!s.remoteOn ? "disabled" : ""}>${options
             .map((o) => `<option value="${esc(o)}" ${o === cat.state ? "selected" : ""}>${esc(o)}</option>`)
             .join("")}</select>${icon("mdi:chevron-down", 18)}</label>` : ""}
@@ -161,9 +210,10 @@ class WashDryerCard extends HTMLElement {
       <div class="row">
         <div class="mini">${this._porthole(s, true)}${s.hasTime ? `<span class="mini-time">${s.remaining}</span>` : ""}</div>
         <div class="titles"><h2>${esc(c.name)}</h2><p class="subtitle">${esc(line)}</p></div>
+        ${this._controlButtons(s, true)}
       </div>
       ${s.active ? this._stagesBar(s) : this._favs(s, c.compact_favourites)}
-      ${s.offline || !s.remoteOn || s.paused ? this._notice(s) : ""}
+      ${s.offline || !s.remoteOn || (s.paused && !s.controls) ? this._notice(s) : ""}
     </ha-card>`;
   }
 
@@ -177,6 +227,9 @@ class WashDryerCard extends HTMLElement {
     );
     this.shadowRoot.querySelector("[data-catalog]")?.addEventListener("change", (ev) =>
       this._hass.callService("input_select", "select_option", { entity_id: this._config.catalog, option: ev.target.value }),
+    );
+    this.shadowRoot.querySelectorAll("[data-control]").forEach((b) =>
+      b.addEventListener("click", () => this._control(b.dataset.control)),
     );
     this.shadowRoot.querySelector('[data-action="start"]')?.addEventListener("click", () => {
       const prog = this._s(this._config.catalog);
@@ -239,7 +292,11 @@ const STYLE = `<style>
     border: 1px solid var(--divider-color); background: transparent; color: var(--primary-text-color); }
   .fav span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .fav ha-icon { color: var(--primary-color); flex: none; }
-  .actions { display: flex; }
+  .actions { display: flex; gap: 8px; }
+  .secondary { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; font-size: 14px; font-weight: 500;
+    border: 1px solid var(--divider-color); background: transparent; color: var(--primary-text-color); }
+  .round { flex: none; width: 44px; height: 44px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center;
+    background: var(--primary-color); color: var(--text-primary-color, #fff); }
   .primary { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; border: none;
     background: var(--primary-color); color: var(--text-primary-color, #fff); font-size: 14px; font-weight: 500; }
   .running-info { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; padding: 10px 12px; border-radius: 8px; background: var(--secondary-background-color); }
@@ -254,6 +311,7 @@ const STYLE = `<style>
 </style>`;
 
 if (!customElements.get("wash-dryer-card")) {
+  console.info(`%c wash-dryer-card ${VERSION} `, "background:#1e88e5;color:#fff;border-radius:3px");
   customElements.define("wash-dryer-card", WashDryerCard);
   window.customCards = window.customCards || [];
   window.customCards.push({ type: "wash-dryer-card", name: "Wash dryer (gvigroux hOn)", description: "Porthole-style status, progress, catalog start and favourites for the Hoover washer-dryer." });
