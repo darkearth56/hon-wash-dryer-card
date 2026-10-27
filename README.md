@@ -21,6 +21,12 @@ gvigroux/hon has no working pause or stop service for washers. Install the compa
 
 The machine takes about a minute to report a change, so the button shows "Pausing…", "Resuming…" or "Stopping…" for a minute after you press it.
 
+## Tested on
+
+- Hoover H-Wash & Dry 400 (BH4S696M6DB9-80), integrated, Wi-Fi enabled, 9 kg washer-dryer
+
+The default entity names, program codes and phase codes come from this machine. Other models may report different program codes, which you can name with `code_names`.
+
 ## Install
 
 ### HACS
