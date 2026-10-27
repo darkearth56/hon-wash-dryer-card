@@ -92,6 +92,7 @@ favourites:
 | `compact_favourites` | `3` | How many favourites the compact layout shows when idle |
 | `code_names` | see below | Map of program code to a friendly name, for codes the program name sensor can't resolve |
 | `catalog` | `input_select.wash_dryer_program_catalog` | Optional `input_select` listing programs. The dropdown is hidden if the entity doesn't exist |
+| `placeholder` | `Select a program` | Catalog option that means nothing is chosen. The start button stays disabled while it's selected |
 | `catalog_go` | `input_button.wash_dryer_catalog_start` | `input_button` pressed by the start button. Your own automation should start the selected program when it is pressed |
 | `phase` | `sensor.wash_dryer_program_phase` | Program phase sensor |
 | `remaining` | `sensor.wash_dryer_remaining_time` | Remaining time sensor (minutes) |
@@ -104,7 +105,7 @@ favourites:
 
 The entity defaults match a device named "Wash Dryer" in gvigroux/hon. If yours has a different name, override the entity options.
 
-Default `code_names`: `4` Synthetic and Coloured, `5` Rinse, `12` All in One 59, `17` Low Dry. Program codes can differ between models, so check yours.
+Default `code_names`: `2` Drain & Spin, `4` Synthetic and Coloured, `5` Rinse, `12` All in One 59, `17` Low Dry. Program codes can differ between models, so check yours.
 
 ### How states are read
 
@@ -119,6 +120,7 @@ Phase codes follow the gvigroux translations: 1–2, 14–16, 25 and 27 washing;
 
 ## Changelog
 
+- 1.2.0: Start stays disabled while the catalog is on its placeholder option (default `Select a program`). Program code 2 named Drain & Spin.
 - 1.1.0: Pause, resume and stop buttons via hon-control. Mode 1 with a Ready phase now shows as idle, not starting. Program code 5 named Rinse.
 - 1.0.0: First release.
 

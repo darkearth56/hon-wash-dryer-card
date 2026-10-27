@@ -1,7 +1,7 @@
 // wash-dryer-card — porthole-style card for a Hoover/Haier washer-dryer on the gvigroux/hon integration.
 // Layouts: full | compact. Start runs the catalog selection or a configured favourite.
 // Pause, resume and stop appear when the hon_control integration (darkearth56/hon-control) is installed.
-const VERSION = "1.1.0";
+const VERSION = "1.2.0";
 const DEFAULTS = {
   layout: "full",
   name: "Wash Dryer",
@@ -16,9 +16,10 @@ const DEFAULTS = {
   remote: "binary_sensor.wash_dryer_remote_control",
   catalog: "input_select.wash_dryer_program_catalog",
   catalog_go: "input_button.wash_dryer_catalog_start",
-  code_names: { 4: "Synthetic and Coloured", 5: "Rinse", 12: "All in One 59", 17: "Low Dry" },
+  code_names: { 2: "Drain & Spin", 4: "Synthetic and Coloured", 5: "Rinse", 12: "All in One 59", 17: "Low Dry" },
   favourites: [],
   compact_favourites: 3,
+  placeholder: "Select a program",
 };
 
 const PHASES = {
@@ -194,11 +195,11 @@ class WashDryerCard extends HTMLElement {
       ${s.active
         ? `<div class="running-info"><span class="prog">${esc(s.programLabel || "Program running")}</span><span class="meta">${[!BAD.includes(s.temp) ? `${esc(s.temp)}°C` : "", !BAD.includes(s.spin) ? `${esc(s.spin)} rpm` : ""].filter(Boolean).join(" · ")}</span></div>
            ${this._controlButtons(s, false)}`
-        : `${cat ? `<label class="program"><select data-catalog ${!s.remoteOn ? "disabled" : ""}>${options
+        : `${cat ? `<label class="program ${cat.state === c.placeholder ? "empty" : ""}"><select data-catalog ${!s.remoteOn ? "disabled" : ""}>${options
             .map((o) => `<option value="${esc(o)}" ${o === cat.state ? "selected" : ""}>${esc(o)}</option>`)
             .join("")}</select>${icon("mdi:chevron-down", 18)}</label>` : ""}
            ${this._favs(s)}
-           <div class="actions"><button class="primary" data-action="start" ${!s.remoteOn || !cat ? "disabled" : ""}>${icon("mdi:play", 20)}Start selected program</button></div>`}
+           <div class="actions"><button class="primary" data-action="start" ${!s.remoteOn || !cat || cat.state === c.placeholder ? "disabled" : ""}>${icon("mdi:play", 20)}Start selected program</button></div>`}
       ${this._notice(s)}
     </ha-card>`;
   }
@@ -233,6 +234,7 @@ class WashDryerCard extends HTMLElement {
     );
     this.shadowRoot.querySelector('[data-action="start"]')?.addEventListener("click", () => {
       const prog = this._s(this._config.catalog);
+      if (!prog || prog === this._config.placeholder) return;
       if (!window.confirm(`Start "${prog}" now?`)) return;
       this._hass.callService("input_button", "press", { entity_id: this._config.catalog_go });
     });
@@ -284,6 +286,7 @@ const STYLE = `<style>
   .program { position: relative; display: flex; align-items: center; }
   .program select { width: 100%; appearance: none; font: inherit; font-size: 14px; padding: 10px 36px 10px 12px; border-radius: 8px;
     border: 1px solid var(--divider-color); background: var(--card-background-color); color: var(--primary-text-color); }
+  .program.empty select { color: var(--secondary-text-color); }
   .program ha-icon { position: absolute; right: 10px; pointer-events: none; color: var(--secondary-text-color); }
   .favs { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
   button { font: inherit; cursor: pointer; border-radius: 8px; }
