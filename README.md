@@ -4,6 +4,30 @@ A porthole-style Lovelace card for Haier, Hoover and Candy washers and washer-dr
 
 It is inspired by the `hon-washer-card` that ships with [galvani/hon](https://github.com/galvani/hon), which only works with the hon-revived family of integrations. This card reads the sensors gvigroux creates instead.
 
+## Screenshots
+
+Running, paused, and drying, with Pause/Resume and Stop from [hon-control](https://github.com/darkearth56/hon-control):
+
+![Full layout while washing, paused and drying](images/full-states.png)
+
+Idle, with the program dropdown on its placeholder (start disabled) and with a program chosen, plus favourites:
+
+![Full layout when idle](images/full-idle.png)
+
+Compact layout during a rinse, during a spin, and idle with favourites:
+
+![Compact layout](images/compact.png)
+
+Home Assistant's dark theme:
+
+![Dark theme](images/dark.png)
+
+Remote control switched off on the machine:
+
+![Remote control off](images/remote-off.png)
+
+The screenshots use sample readings rendered with Home Assistant's default theme.
+
 ## What it shows
 
 - A drum that fills with water according to the current stage, with minutes left in the middle and the finish time underneath
@@ -126,6 +150,7 @@ Phase codes follow the gvigroux translations: 1–2, 14–16, 25 and 27 washing;
 
 ## Changelog
 
+- 1.2.1: Temperature and spin are hidden when the machine reports 0, as it does while drying.
 - 1.2.0: Start stays disabled while the catalog is on its placeholder option (default `Select a program`). Program code 2 named Drain & Spin.
 - 1.1.0: Pause, resume and stop buttons via hon-control. Mode 1 with a Ready phase now shows as idle, not starting. Program code 5 named Rinse.
 - 1.0.0: First release.

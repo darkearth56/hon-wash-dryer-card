@@ -1,7 +1,7 @@
 // wash-dryer-card — porthole-style card for a Hoover/Haier washer-dryer on the gvigroux/hon integration.
 // Layouts: full | compact. Start runs the catalog selection or a configured favourite.
 // Pause, resume and stop appear when the hon_control integration (darkearth56/hon-control) is installed.
-const VERSION = "1.2.0";
+const VERSION = "1.2.1";
 const DEFAULTS = {
   layout: "full",
   name: "Wash Dryer",
@@ -193,7 +193,7 @@ class WashDryerCard extends HTMLElement {
       ${s.hasTime ? `<p class="ends">Ends at <strong>${esc(s.ends)}</strong></p>` : ""}
       ${this._stagesBar(s)}
       ${s.active
-        ? `<div class="running-info"><span class="prog">${esc(s.programLabel || "Program running")}</span><span class="meta">${[!BAD.includes(s.temp) ? `${esc(s.temp)}°C` : "", !BAD.includes(s.spin) ? `${esc(s.spin)} rpm` : ""].filter(Boolean).join(" · ")}</span></div>
+        ? `<div class="running-info"><span class="prog">${esc(s.programLabel || "Program running")}</span><span class="meta">${[Number(s.temp) > 0 ? `${esc(s.temp)}°C` : "", Number(s.spin) > 0 ? `${esc(s.spin)} rpm` : ""].filter(Boolean).join(" · ")}</span></div>
            ${this._controlButtons(s, false)}`
         : `${cat ? `<label class="program ${cat.state === c.placeholder ? "empty" : ""}"><select data-catalog ${!s.remoteOn ? "disabled" : ""}>${options
             .map((o) => `<option value="${esc(o)}" ${o === cat.state ? "selected" : ""}>${esc(o)}</option>`)
