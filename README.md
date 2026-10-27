@@ -1,4 +1,4 @@
-# hOn wash-dryer card
+# hOn washer-dryer card
 
 A porthole-style Lovelace card for Haier, Hoover and Candy washers and washer-dryers running on the [gvigroux/hon](https://github.com/gvigroux/hon) Home Assistant integration.
 
@@ -57,7 +57,7 @@ The default entity names, program codes and phase codes come from this machine. 
 
 1. HACS → three-dot menu → **Custom repositories**
 2. Add `https://github.com/darkearth56/hon-wash-dryer-card` with type **Dashboard**
-3. Install **hOn wash-dryer card** and reload the browser
+3. Install **hOn washer-dryer card** and reload the browser
 
 ### Manual
 
@@ -86,7 +86,7 @@ Full example with favourites:
 ```yaml
 type: custom:wash-dryer-card
 layout: full
-name: Wash Dryer
+name: Washer Dryer
 favourites:
   - name: Rapid 59
     icon: mdi:speedometer
@@ -116,7 +116,7 @@ favourites:
 | Option | Default | Description |
 | --- | --- | --- |
 | `layout` | `full` | `full` or `compact` |
-| `name` | `Wash Dryer` | Card title |
+| `name` | `Washer Dryer` | Card title |
 | `device_id` | found from the `phase` sensor | hOn device that pause, resume and stop are sent to |
 | `favourites` | `[]` | Buttons that call a service. Each has `name`, `action` (`domain.service`), and optional `icon`, `data`, `target`, `confirm` |
 | `compact_favourites` | `3` | How many favourites the compact layout shows when idle |
@@ -133,7 +133,7 @@ favourites:
 | `spin` | `sensor.wash_dryer_spin_speed` | Spin speed sensor |
 | `remote` | `binary_sensor.wash_dryer_remote_control` | Remote control binary sensor |
 
-The entity defaults match a device named "Wash Dryer" in gvigroux/hon. If yours has a different name, override the entity options.
+The entity defaults match the `sensor.wash_dryer_*` entities gvigroux/hon creates for a device named "Wash Dryer". If yours has a different name, override the entity options.
 
 Default `code_names`: `2` Drain & Spin, `4` Synthetic and Coloured, `5` Rinse, `12` All in One 59, `17` Low Dry. Program codes can differ between models, so check yours.
 
@@ -150,6 +150,7 @@ Phase codes follow the gvigroux translations: 1–2, 14–16, 25 and 27 washing;
 
 ## Changelog
 
+- 1.2.2: Default title is now "Washer Dryer".
 - 1.2.1: Temperature and spin are hidden when the machine reports 0, as it does while drying.
 - 1.2.0: Start stays disabled while the catalog is on its placeholder option (default `Select a program`). Program code 2 named Drain & Spin.
 - 1.1.0: Pause, resume and stop buttons via hon-control. Mode 1 with a Ready phase now shows as idle, not starting. Program code 5 named Rinse.

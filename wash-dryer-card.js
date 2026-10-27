@@ -1,10 +1,10 @@
 // wash-dryer-card — porthole-style card for a Hoover/Haier washer-dryer on the gvigroux/hon integration.
 // Layouts: full | compact. Start runs the catalog selection or a configured favourite.
 // Pause, resume and stop appear when the hon_control integration (darkearth56/hon-control) is installed.
-const VERSION = "1.2.1";
+const VERSION = "1.2.2";
 const DEFAULTS = {
   layout: "full",
-  name: "Wash Dryer",
+  name: "Washer Dryer",
   device_id: "",
   phase: "sensor.wash_dryer_program_phase",
   remaining: "sensor.wash_dryer_remaining_time",
@@ -317,5 +317,5 @@ if (!customElements.get("wash-dryer-card")) {
   console.info(`%c wash-dryer-card ${VERSION} `, "background:#1e88e5;color:#fff;border-radius:3px");
   customElements.define("wash-dryer-card", WashDryerCard);
   window.customCards = window.customCards || [];
-  window.customCards.push({ type: "wash-dryer-card", name: "Wash dryer (gvigroux hOn)", description: "Porthole-style status, progress, catalog start and favourites for the Hoover washer-dryer." });
+  window.customCards.push({ type: "wash-dryer-card", name: "Washer dryer (gvigroux hOn)", description: "Porthole-style status, progress, catalog start and favourites for the Hoover washer-dryer." });
 }
