@@ -130,6 +130,13 @@ Phase codes follow the gvigroux translations: 1–2, 14–16, 25 and 27 washing;
 - 1.1.0: Pause, resume and stop buttons via hon-control. Mode 1 with a Ready phase now shows as idle, not starting. Program code 5 named Rinse.
 - 1.0.0: First release.
 
+## Credits
+
+- The design is based on the `hon-washer-card` from [galvani/hon](https://github.com/galvani/hon): the porthole drum with water that fills by stage, the Wash/Rinse/Spin/Dry progress bar, and the full and compact layouts. The drum's wave shapes are reused from that card under its MIT licence; see `LICENSE`.
+- galvani/hon builds on [mmalolepszy/hon-revived](https://github.com/mmalolepszy/hon-revived), which continues Andre Basche's original [Andre0512/hon](https://github.com/Andre0512/hon) integration.
+- The card reads the sensors created by [gvigroux/hon](https://github.com/gvigroux/hon). Phase names follow that integration's translations.
+- Pause, resume and stop come from the companion integration [hon-control](https://github.com/darkearth56/hon-control).
+
 ## Licence
 
 MIT
