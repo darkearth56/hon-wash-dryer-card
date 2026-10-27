@@ -136,6 +136,7 @@ Phase codes follow the gvigroux translations: 1–2, 14–16, 25 and 27 washing;
 - galvani/hon builds on [mmalolepszy/hon-revived](https://github.com/mmalolepszy/hon-revived), which continues Andre Basche's original [Andre0512/hon](https://github.com/Andre0512/hon) integration.
 - The card reads the sensors created by [gvigroux/hon](https://github.com/gvigroux/hon). Phase names follow that integration's translations.
 - Pause, resume and stop come from the companion integration [hon-control](https://github.com/darkearth56/hon-control).
+- Written by darkearth56 with help from Claude (Anthropic), an AI assistant, which helped design, write and test the code and documentation.
 
 ## Licence
 
