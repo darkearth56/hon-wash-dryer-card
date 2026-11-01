@@ -1,7 +1,7 @@
 // wash-dryer-card — porthole-style card for a Hoover/Haier washer-dryer on the gvigroux/hon integration.
 // Layouts: full | compact. Start runs the catalog selection or a configured favourite.
 // Pause, resume and stop appear when the hon_control integration (darkearth56/hon-control) is installed.
-const VERSION = "1.2.2";
+const VERSION = "1.3.0";
 const DEFAULTS = {
   layout: "full",
   name: "Washer Dryer",
@@ -150,6 +150,17 @@ class WashDryerCard extends HTMLElement {
           <path class="wave front" d="M-100 4 Q-75 -6 -50 4 T0 4 T50 4 T100 4 T150 4 T200 4 T250 4 T300 4 V200 H-100 Z"/>
         </g>
       </g>
+      ${level === "dry" ? `<g clip-path="url(#${id})" class="dryer ${s.active && !s.paused ? "moving" : ""}">
+        <g class="heat">
+          <path d="M78 170 q5 -7 0 -14 t0 -14"/><path d="M100 174 q5 -7 0 -14 t0 -14"/><path d="M122 170 q5 -7 0 -14 t0 -14"/>
+        </g>
+        <g class="tumble">
+          <path class="cloth c1" d="M100 40 q14 -6 22 4 q-4 12 -20 10 q-12 -2 -2 -14 z"/>
+          <path class="cloth c2" d="M156 108 q8 10 -2 22 q-14 2 -16 -12 q2 -12 18 -10 z"/>
+          <path class="cloth c3" d="M90 158 q-12 6 -22 -4 q2 -12 18 -12 q12 4 4 16 z"/>
+          <path class="cloth c4" d="M44 92 q-6 -12 6 -20 q12 0 12 14 q-4 12 -18 6 z"/>
+        </g>
+      </g>` : ""}
       <circle cx="100" cy="100" r="72" class="shine"/>
     </svg>`;
   }
@@ -250,7 +261,8 @@ class WashDryerCard extends HTMLElement {
 }
 
 const STYLE = `<style>
-  :host { --wd-water-top: #64b5f6; --wd-water-bottom: #1e88e5; }
+  :host { --wd-water-top: #64b5f6; --wd-water-bottom: #1e88e5; --wd-heat: #ff8a50;
+    --wd-cloth-1: #90caf9; --wd-cloth-2: #f48fb1; --wd-cloth-3: #ffe082; --wd-cloth-4: #a5d6a7; }
   ha-card { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
   h2 { margin: 0; font-size: 18px; font-weight: 500; color: var(--primary-text-color); }
   .subtitle { margin: 2px 0 0; font-size: 13px; color: var(--secondary-text-color); }
@@ -267,7 +279,20 @@ const STYLE = `<style>
   .level-wash { transform: translateY(105px); }
   .level-rinse { transform: translateY(95px); }
   .level-spin { transform: translateY(150px); }
-  .level-dry { transform: translateY(175px); }
+  .level-dry { transform: translateY(200px); }
+  .dryer .heat path { fill: none; stroke: var(--wd-heat); stroke-width: 3; stroke-linecap: round; opacity: 0; }
+  .dryer .cloth { stroke: rgba(0,0,0,.08); stroke-width: 1; }
+  .dryer .c1 { fill: var(--wd-cloth-1); } .dryer .c2 { fill: var(--wd-cloth-2); }
+  .dryer .c3 { fill: var(--wd-cloth-3); } .dryer .c4 { fill: var(--wd-cloth-4); }
+  .dryer .tumble { transform-origin: 100px 100px; transform-box: view-box; }
+  .dryer:not(.moving) .heat path { opacity: .25; }
+  .dryer.moving .tumble { animation: tumble 6s linear infinite; }
+  .dryer.moving .heat path { animation: rise 3s ease-in infinite; }
+  .dryer.moving .heat path:nth-child(2) { animation-delay: 1s; }
+  .dryer.moving .heat path:nth-child(3) { animation-delay: 2s; }
+  @keyframes tumble { to { transform: rotate(360deg); } }
+  @keyframes rise { 0% { opacity: 0; transform: translateY(8px); } 40% { opacity: .6; } 100% { opacity: 0; transform: translateY(-10px); } }
+  @media (prefers-reduced-motion: reduce) { .dryer.moving .tumble, .dryer.moving .heat path { animation: none; } .dryer .heat path { opacity: .25; } }
   .moving .wave { animation: drift 4s linear infinite; }
   .moving .wave.back { animation-duration: 6s; }
   @keyframes drift { from { transform: translateX(0); } to { transform: translateX(100px); } }
