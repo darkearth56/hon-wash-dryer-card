@@ -154,7 +154,8 @@ Phase codes follow the gvigroux translations: 1–2, 14–16, 25 and 27 washing;
 
 ## Changelog
 
-- 1.3.0: Drying animation: laundry tumbles round the drum with warm air rising, instead of an empty drum. Respects reduced-motion settings.
+- 1.3.1: The drying animation now runs even when the device asks for reduced motion, matching the water animation.
+- 1.3.0: Drying animation: laundry tumbles round the drum with warm air rising, instead of an empty drum.
 - 1.2.2: Default title is now "Washer Dryer".
 - 1.2.1: Temperature and spin are hidden when the machine reports 0, as it does while drying.
 - 1.2.0: Start stays disabled while the catalog is on its placeholder option (default `Select a program`). Program code 2 named Drain & Spin.

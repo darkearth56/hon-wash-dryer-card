@@ -1,7 +1,7 @@
 // wash-dryer-card — porthole-style card for a Hoover/Haier washer-dryer on the gvigroux/hon integration.
 // Layouts: full | compact. Start runs the catalog selection or a configured favourite.
 // Pause, resume and stop appear when the hon_control integration (darkearth56/hon-control) is installed.
-const VERSION = "1.3.0";
+const VERSION = "1.3.1";
 const DEFAULTS = {
   layout: "full",
   name: "Washer Dryer",
@@ -292,7 +292,6 @@ const STYLE = `<style>
   .dryer.moving .heat path:nth-child(3) { animation-delay: 2s; }
   @keyframes tumble { to { transform: rotate(360deg); } }
   @keyframes rise { 0% { opacity: 0; transform: translateY(8px); } 40% { opacity: .6; } 100% { opacity: 0; transform: translateY(-10px); } }
-  @media (prefers-reduced-motion: reduce) { .dryer.moving .tumble, .dryer.moving .heat path { animation: none; } .dryer .heat path { opacity: .25; } }
   .moving .wave { animation: drift 4s linear infinite; }
   .moving .wave.back { animation-duration: 6s; }
   @keyframes drift { from { transform: translateX(0); } to { transform: translateX(100px); } }
