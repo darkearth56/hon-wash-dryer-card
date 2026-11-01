@@ -10,7 +10,7 @@ Running, paused, and drying, with Pause/Resume and Stop from [hon-control](https
 
 ![Full layout while washing, paused and drying](images/full-states.png)
 
-While drying, laundry tumbles round the drum with warm air rising (it stops moving when paused):
+While drying, the drum's paddles lift the clothes up the side and drop them back across the drum, with a warm glow. When paused, the clothes settle at the bottom:
 
 ![Drying animation](images/drying.gif)
 
@@ -154,6 +154,7 @@ Phase codes follow the gvigroux translations: 1–2, 14–16, 25 and 27 washing;
 
 ## Changelog
 
+- 1.4.0: Drying animation rebuilt to look like a real dryer: paddles lift T-shirts, a sock and a towel up the drum wall and drop them, with a warm glow; paused clothes settle at the bottom.
 - 1.3.1: The drying animation now runs even when the device asks for reduced motion, matching the water animation.
 - 1.3.0: Drying animation: laundry tumbles round the drum with warm air rising, instead of an empty drum.
 - 1.2.2: Default title is now "Washer Dryer".
@@ -167,6 +168,7 @@ Phase codes follow the gvigroux translations: 1–2, 14–16, 25 and 27 washing;
 - The design is based on the `hon-washer-card` from [galvani/hon](https://github.com/galvani/hon): the porthole drum with water that fills by stage, the Wash/Rinse/Spin/Dry progress bar, and the full and compact layouts. The drum's wave shapes are reused from that card under its MIT licence; see `LICENSE`.
 - galvani/hon builds on [mmalolepszy/hon-revived](https://github.com/mmalolepszy/hon-revived), which continues Andre Basche's original [Andre0512/hon](https://github.com/Andre0512/hon) integration.
 - The card reads the sensors created by [gvigroux/hon](https://github.com/gvigroux/hon). Phase names follow that integration's translations.
+- The T-shirt shapes in the drying animation are from [Material Design Icons](https://pictogrammers.com/library/mdi/) (Pictogrammers Free License).
 - Pause, resume and stop come from the companion integration [hon-control](https://github.com/darkearth56/hon-control).
 - Written by darkearth56 with help from Claude (Anthropic), an AI assistant, which helped design, write and test the code and documentation.
 

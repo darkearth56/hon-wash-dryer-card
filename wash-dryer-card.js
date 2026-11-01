@@ -1,7 +1,7 @@
 // wash-dryer-card — porthole-style card for a Hoover/Haier washer-dryer on the gvigroux/hon integration.
 // Layouts: full | compact. Start runs the catalog selection or a configured favourite.
 // Pause, resume and stop appear when the hon_control integration (darkearth56/hon-control) is installed.
-const VERSION = "1.3.1";
+const VERSION = "1.4.0";
 const DEFAULTS = {
   layout: "full",
   name: "Washer Dryer",
@@ -31,6 +31,25 @@ const STAGES = { wash: [1, 2, 9, 12, 13, 14, 15, 16, 20, 24, 25, 26, 27], rinse:
 const STAGE_LABELS = { wash: "Wash", rinse: "Rinse", spin: "Spin", dry: "Dry" };
 const MODES = { 1: "Starting", 2: "Running", 3: "Paused", 7: "Ready" };
 const BAD = ["unknown", "unavailable", "", undefined, null];
+
+// Garment shapes in a 24x24 box. T-shirts are Material Design Icons (Pictogrammers Free License); sock and towel are drawn here.
+const GARMENTS = {
+  crew: [["M16,21H8A1,1 0 0,1 7,20V12.07L5.7,13.07C5.31,13.46 4.68,13.46 4.29,13.07L1.46,10.29C1.07,9.9 1.07,9.27 1.46,8.88L7.34,3H9C9,4.1 10.34,5 12,5C13.66,5 15,4.1 15,3H16.66L22.54,8.88C22.93,9.27 22.93,9.9 22.54,10.29L19.71,13.12C19.32,13.5 18.69,13.5 18.3,13.12L17,12.12V20A1,1 0 0,1 16,21"]],
+  vneck: [["M16,21H8A1,1 0 0,1 7,20V12.07L5.7,13.07C5.31,13.46 4.68,13.46 4.29,13.07L1.46,10.29C1.07,9.9 1.07,9.27 1.46,8.88L7.34,3H9C9.29,4.8 10.4,6.37 12,7.25C13.6,6.37 14.71,4.8 15,3H16.66L22.54,8.88C22.93,9.27 22.93,9.9 22.54,10.29L19.71,13.12C19.32,13.5 18.69,13.5 18.3,13.12L17,12.12V20A1,1 0 0,1 16,21"]],
+  sock: [["M9 2h6v10l3.8 3.8a3 3 0 0 1 -4.2 4.2l-5 -5A2 2 0 0 1 9 13.6z"], ["M9 2h6v2.2H9z", "trim"]],
+  towel: [["M4 6h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1H4a1 1 0 0 1 -1 -1V7a1 1 0 0 1 1 -1z"], ["M3 13h18v2H3z", "trim"]],
+};
+// Each garment is lifted up the drum wall by the paddles, then drops back across the drum, turning as it falls.
+const TUMBLE = [
+  { kind: "crew", fill: 1, begin: 0, spin: "0;110;300;360", rest: [84, 150, -25],
+    path: "M100,156 A56,56 0 0,1 52.5,70.3 Q80,72 116,150 L100,156", points: "0;0.494;0.929;1" },
+  { kind: "sock", fill: 2, begin: 1.1, spin: "0;120;-60;0", rest: [118, 148, 35],
+    path: "M100,152 A52,52 0 0,1 51.1,82.2 Q76,80 108,146 L100,152", points: "0;0.501;0.950;1" },
+  { kind: "towel", fill: 3, begin: 2.2, spin: "0;100;270;360", rest: [101, 156, 6],
+    path: "M100,158 A58,58 0 0,1 56.9,61.2 Q86,66 124,152 L100,158", points: "0;0.487;0.910;1" },
+  { kind: "vneck", fill: 4, begin: 3.3, spin: "0;115;-70;0", rest: [97, 139, -70],
+    path: "M100,154 A54,54 0 0,1 51.5,76.3 Q78,76 112,148 L100,154", points: "0;0.496;0.939;1" },
+];
 
 const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const icon = (name, size = 20) => `<ha-icon icon="${esc(name)}" style="--mdc-icon-size:${size}px"></ha-icon>`;
@@ -150,19 +169,27 @@ class WashDryerCard extends HTMLElement {
           <path class="wave front" d="M-100 4 Q-75 -6 -50 4 T0 4 T50 4 T100 4 T150 4 T200 4 T250 4 T300 4 V200 H-100 Z"/>
         </g>
       </g>
-      ${level === "dry" ? `<g clip-path="url(#${id})" class="dryer ${s.active && !s.paused ? "moving" : ""}">
-        <g class="heat">
-          <path d="M78 170 q5 -7 0 -14 t0 -14"/><path d="M100 174 q5 -7 0 -14 t0 -14"/><path d="M122 170 q5 -7 0 -14 t0 -14"/>
-        </g>
-        <g class="tumble">
-          <path class="cloth c1" d="M100 40 q14 -6 22 4 q-4 12 -20 10 q-12 -2 -2 -14 z"/>
-          <path class="cloth c2" d="M156 108 q8 10 -2 22 q-14 2 -16 -12 q2 -12 18 -10 z"/>
-          <path class="cloth c3" d="M90 158 q-12 6 -22 -4 q2 -12 18 -12 q12 4 4 16 z"/>
-          <path class="cloth c4" d="M44 92 q-6 -12 6 -20 q12 0 12 14 q-4 12 -18 6 z"/>
-        </g>
-      </g>` : ""}
+      ${level === "dry" ? this._dryer(s, id) : ""}
       <circle cx="100" cy="100" r="72" class="shine"/>
     </svg>`;
+  }
+
+  _dryer(s, clip) {
+    const moving = s.active && !s.paused;
+    const shape = (g) => GARMENTS[g.kind].map(([d, cls]) => `<path class="${cls || `cloth c${g.fill}`}" d="${d}"/>`).join("");
+    const paddles = [0, 120, 240].map((a) => `<path d="M90 28.7 Q100 46 110 28.7 Z" transform="rotate(${a} 100 100)"/>`).join("");
+    const items = TUMBLE.map((g) => {
+      const art = `<g transform="translate(-16 -16) scale(1.35)">${shape(g)}</g>`;
+      if (!moving) return `<g transform="translate(${g.rest[0]} ${g.rest[1]}) rotate(${g.rest[2]})">${art}</g>`;
+      const t = `dur="4.4s" repeatCount="indefinite" begin="-${g.begin}s" keyTimes="0;0.55;0.82;1" calcMode="spline" keySplines="0 0 1 1;0.45 0 1 1;0 0 0.5 1"`;
+      return `<g><animateMotion ${t} path="${g.path}" keyPoints="${g.points}"/>
+        <g><animateTransform attributeName="transform" type="rotate" ${t} values="${g.spin}"/>${art}</g></g>`;
+    }).join("");
+    return `<g clip-path="url(#${clip})" class="dryer ${moving ? "moving" : ""}">
+        <circle cx="100" cy="100" r="72" class="glow"/>
+        <g class="paddles">${paddles}</g>
+        ${items}
+      </g>`;
   }
 
   _stagesBar(s) {
@@ -262,7 +289,7 @@ class WashDryerCard extends HTMLElement {
 
 const STYLE = `<style>
   :host { --wd-water-top: #64b5f6; --wd-water-bottom: #1e88e5; --wd-heat: #ff8a50;
-    --wd-cloth-1: #90caf9; --wd-cloth-2: #f48fb1; --wd-cloth-3: #ffe082; --wd-cloth-4: #a5d6a7; }
+    --wd-cloth-1: #64b5f6; --wd-cloth-2: #f06292; --wd-cloth-3: #ffd54f; --wd-cloth-4: #81c784; }
   ha-card { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
   h2 { margin: 0; font-size: 18px; font-weight: 500; color: var(--primary-text-color); }
   .subtitle { margin: 2px 0 0; font-size: 13px; color: var(--secondary-text-color); }
@@ -280,18 +307,16 @@ const STYLE = `<style>
   .level-rinse { transform: translateY(95px); }
   .level-spin { transform: translateY(150px); }
   .level-dry { transform: translateY(200px); }
-  .dryer .heat path { fill: none; stroke: var(--wd-heat); stroke-width: 3; stroke-linecap: round; opacity: 0; }
-  .dryer .cloth { stroke: rgba(0,0,0,.08); stroke-width: 1; }
+  .dryer .glow { fill: var(--wd-heat); opacity: .1; }
+  .dryer.moving .glow { animation: glow 2.2s ease-in-out infinite alternate; }
+  .dryer .paddles { fill: var(--divider-color); transform-origin: 100px 100px; transform-box: view-box; }
+  .dryer.moving .paddles { animation: turn 6.6s linear infinite; }
+  .dryer .cloth { stroke: rgba(0,0,0,.12); stroke-width: .6; }
+  .dryer .trim { fill: rgba(255,255,255,.55); }
   .dryer .c1 { fill: var(--wd-cloth-1); } .dryer .c2 { fill: var(--wd-cloth-2); }
   .dryer .c3 { fill: var(--wd-cloth-3); } .dryer .c4 { fill: var(--wd-cloth-4); }
-  .dryer .tumble { transform-origin: 100px 100px; transform-box: view-box; }
-  .dryer:not(.moving) .heat path { opacity: .25; }
-  .dryer.moving .tumble { animation: tumble 6s linear infinite; }
-  .dryer.moving .heat path { animation: rise 3s ease-in infinite; }
-  .dryer.moving .heat path:nth-child(2) { animation-delay: 1s; }
-  .dryer.moving .heat path:nth-child(3) { animation-delay: 2s; }
-  @keyframes tumble { to { transform: rotate(360deg); } }
-  @keyframes rise { 0% { opacity: 0; transform: translateY(8px); } 40% { opacity: .6; } 100% { opacity: 0; transform: translateY(-10px); } }
+  @keyframes turn { to { transform: rotate(360deg); } }
+  @keyframes glow { from { opacity: .06; } to { opacity: .2; } }
   .moving .wave { animation: drift 4s linear infinite; }
   .moving .wave.back { animation-duration: 6s; }
   @keyframes drift { from { transform: translateX(0); } to { transform: translateX(100px); } }
